@@ -130,4 +130,7 @@ def reset_db():
     return jsonify({'message': 'Database Wiped'}), 200
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    # Render assigns a PORT environment variable. We use 5000 as a fallback for local testing.
+    port = int(os.environ.get("PORT", 5000))
+    # 0.0.0.0 tells Flask to listen on all public IPs so Render can route traffic to it.
+    app.run(host='0.0.0.0', port=port)

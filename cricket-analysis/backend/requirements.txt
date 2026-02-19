@@ -1,0 +1,9 @@
+flask==3.0.0
+flask-cors==4.0.0
+flask-socketio==5.3.6
+sqlalchemy==2.0.23
+opencv-python==4.8.1.78
+numpy
+pandas
+python-dotenv==1.0.0
+Pillow

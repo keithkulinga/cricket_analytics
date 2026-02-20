@@ -7,10 +7,11 @@ function App() {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
   const [showOnlyLive, setShowOnlyLive] = useState(false);
-  // NEW: State to store what the user types in the search bar
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // NEW: State to store the exact time the data was last fetched
+  const [lastUpdated, setLastUpdated] = useState("");
 
   useEffect(() => {
     const fetchMatches = () => {
@@ -26,6 +27,8 @@ function App() {
             setMatches([]); 
           }
           setLoading(false);
+          // NEW: Update the timestamp whenever we successfully get new data
+          setLastUpdated(new Date().toLocaleTimeString());
         })
         .catch(err => {
           console.error("Error fetching live matches:", err);
@@ -39,11 +42,9 @@ function App() {
     return () => clearInterval(intervalId);
   }, []);
 
-  // NEW: Double-filter! Check if the match passes the "Live" filter AND the "Search" filter
   const displayedMatches = matches.filter(match => {
     const passesLiveFilter = showOnlyLive ? !match.status.toLowerCase().includes("won") : true;
     const passesSearchFilter = match.name.toLowerCase().includes(searchQuery.toLowerCase());
-    
     return passesLiveFilter && passesSearchFilter;
   });
 
@@ -52,7 +53,9 @@ function App() {
       <header className="App-header">
         <h1>Live Cricket Dashboard 🏏</h1>
         
-        {/* NEW: A container to hold our search bar and filter button side-by-side */}
+        {/* NEW: Display the Last Updated time */}
+        {lastUpdated && <p className="last-updated-text">🟢 Live updates • Last checked: {lastUpdated}</p>}
+
         <div className="controls-container">
           <input 
             type="text" 
@@ -61,7 +64,6 @@ function App() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-
           <button 
             className="filter-button"
             onClick={() => setShowOnlyLive(!showOnlyLive)}
@@ -87,7 +89,7 @@ function App() {
                 </div>
               ))
             ) : (
-              <p>No matches found matching "{searchQuery}" right now.</p>
+              <p>No matches found right now.</p>
             )}
           </div>
         )}

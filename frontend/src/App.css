@@ -119,3 +119,12 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+/* Last Updated Text */
+.last-updated-text {
+  color: #aaaaaa;
+  font-size: 0.9rem;
+  margin-top: 5px;
+  margin-bottom: 20px;
+  font-family: monospace; /* Gives it a data/ticker vibe */
+  letter-spacing: 0.5px;
+}

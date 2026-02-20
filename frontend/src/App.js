@@ -10,28 +10,38 @@ function App() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // 1. Fetching from our brand new live-matches route!
-    fetch(`${API_BASE_URL}/api/live-matches`)
-      .then(res => {
-        if (!res.ok) {
-          throw new Error("Failed to fetch matches");
-        }
-        return res.json();
-      })
-      .then(data => {
-        // The CricketData API puts the match array inside a "data" property
-        if (data && data.data) {
-          setMatches(data.data);
-        } else {
-          setMatches([]); 
-        }
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Error fetching live matches:", err);
-        setError(err.message);
-        setLoading(false);
-      });
+    // 1. We wrap our fetch logic inside a function so we can reuse it
+    const fetchMatches = () => {
+      fetch(`${API_BASE_URL}/api/live-matches`)
+        .then(res => {
+          if (!res.ok) {
+            throw new Error("Failed to fetch matches");
+          }
+          return res.json();
+        })
+        .then(data => {
+          if (data && data.data) {
+            setMatches(data.data);
+          } else {
+            setMatches([]); 
+          }
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error("Error fetching live matches:", err);
+          setError(err.message);
+          setLoading(false);
+        });
+    };
+
+    // 2. Fetch the matches immediately when the page first loads
+    fetchMatches();
+
+    // 3. Set up a timer to run fetchMatches again every 30 seconds (30000 milliseconds)
+    const intervalId = setInterval(fetchMatches, 30000);
+
+    // 4. This cleanup function stops the timer if the user closes the dashboard
+    return () => clearInterval(intervalId);
   }, []);
 
   return (
@@ -44,7 +54,6 @@ function App() {
         {loading && <h2>Fetching live scores from the cloud...</h2>}
         {error && <h2 style={{ color: 'red' }}>Error: {error}</h2>}
         
-        {/* 2. Loop through the matches and create a card for each one */}
         {!loading && !error && (
           <div className="team-grid">
             {matches.length > 0 ? (

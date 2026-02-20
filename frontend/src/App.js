@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
-// Make sure this is your actual Render backend URL!
 const API_BASE_URL = 'https://cricket-python-backend.onrender.com';
 
 function App() {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  const [showOnlyLive, setShowOnlyLive] = useState(false);
+  // NEW: State to store what the user types in the search bar
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    // 1. We wrap our fetch logic inside a function so we can reuse it
     const fetchMatches = () => {
       fetch(`${API_BASE_URL}/api/live-matches`)
         .then(res => {
-          if (!res.ok) {
-            throw new Error("Failed to fetch matches");
-          }
+          if (!res.ok) throw new Error("Failed to fetch matches");
           return res.json();
         })
         .then(data => {
@@ -34,20 +34,41 @@ function App() {
         });
     };
 
-    // 2. Fetch the matches immediately when the page first loads
     fetchMatches();
-
-    // 3. Set up a timer to run fetchMatches again every 30 seconds (30000 milliseconds)
     const intervalId = setInterval(fetchMatches, 30000);
-
-    // 4. This cleanup function stops the timer if the user closes the dashboard
     return () => clearInterval(intervalId);
   }, []);
+
+  // NEW: Double-filter! Check if the match passes the "Live" filter AND the "Search" filter
+  const displayedMatches = matches.filter(match => {
+    const passesLiveFilter = showOnlyLive ? !match.status.toLowerCase().includes("won") : true;
+    const passesSearchFilter = match.name.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    return passesLiveFilter && passesSearchFilter;
+  });
 
   return (
     <div className="App">
       <header className="App-header">
         <h1>Live Cricket Dashboard 🏏</h1>
+        
+        {/* NEW: A container to hold our search bar and filter button side-by-side */}
+        <div className="controls-container">
+          <input 
+            type="text" 
+            className="search-bar" 
+            placeholder="Search for a team or match..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+
+          <button 
+            className="filter-button"
+            onClick={() => setShowOnlyLive(!showOnlyLive)}
+          >
+            {showOnlyLive ? "Show All Matches" : "🔴 Show Live Only"}
+          </button>
+        </div>
       </header>
       
       <main style={{ padding: '20px' }}>
@@ -56,8 +77,8 @@ function App() {
         
         {!loading && !error && (
           <div className="team-grid">
-            {matches.length > 0 ? (
-              matches.map((match) => (
+            {displayedMatches.length > 0 ? (
+              displayedMatches.map((match) => (
                 <div key={match.id} className="team-card" style={{ padding: '15px', textAlign: 'left' }}>
                   <h3 style={{ marginTop: '0' }}>{match.name}</h3>
                   <p><strong>Status:</strong> {match.status}</p>
@@ -66,7 +87,7 @@ function App() {
                 </div>
               ))
             ) : (
-              <p>No live matches found right now.</p>
+              <p>No matches found matching "{searchQuery}" right now.</p>
             )}
           </div>
         )}

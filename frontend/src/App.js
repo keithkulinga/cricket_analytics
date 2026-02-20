@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 
 // REPLACE THIS with your actual Render backend URL
-const API_BASE_URL = 'https://cricket-python-backend.onrender.com'; 
+const API_BASE_URL = 'https://cricket-python-backend-xxxx.onrender.com'; 
 
 function App() {
   const [teams, setTeams] = useState([]);

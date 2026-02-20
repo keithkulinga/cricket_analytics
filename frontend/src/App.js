@@ -1,12 +1,22 @@
 import React, { useState, useEffect } from 'react';
+/* NEW: Import the chart components from recharts */
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import './App.css';
 
 const API_BASE_URL = 'https://cricket-python-backend.onrender.com';
 
+/* NEW: Mock Data for our Analytics Chart */
+const mockAnalyticsData = [
+  { name: 'India', wins: 45, losses: 12 },
+  { name: 'Australia', wins: 42, losses: 15 },
+  { name: 'England', wins: 38, losses: 20 },
+  { name: 'Pakistan', wins: 35, losses: 22 },
+  { name: 'South Africa', wins: 30, losses: 25 },
+];
+
 function App() {
   const [activeTab, setActiveTab] = useState("live");
 
-  // Live Matches State
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -14,11 +24,9 @@ function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [lastUpdated, setLastUpdated] = useState("");
 
-  // NEW: Teams Database State
   const [teams, setTeams] = useState([]);
   const [loadingTeams, setLoadingTeams] = useState(false);
 
-  // 1. Fetch Live Matches (Runs every 30 seconds)
   useEffect(() => {
     const fetchMatches = () => {
       fetch(`${API_BASE_URL}/api/live-matches`)
@@ -47,15 +55,12 @@ function App() {
     return () => clearInterval(intervalId);
   }, []);
 
-  // 2. NEW: Fetch Teams (Runs ONLY when you click the Teams tab)
   useEffect(() => {
-    // We only fetch if they click "teams" AND we haven't already fetched them
     if (activeTab === "teams" && teams.length === 0) {
       setLoadingTeams(true);
       fetch(`${API_BASE_URL}/api/teams`)
         .then(res => res.json())
         .then(data => {
-          // Handles whether your API sends { teams: [...] } or just an array [...]
           const teamsData = data.teams || data || [];
           setTeams(teamsData);
           setLoadingTeams(false);
@@ -67,7 +72,6 @@ function App() {
     }
   }, [activeTab, teams.length]);
 
-  // Filtering and Sorting for Live Matches
   const displayedMatches = matches.filter(match => {
     const passesLiveFilter = showOnlyLive ? !match.status.toLowerCase().includes("won") : true;
     const passesSearchFilter = match.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -85,7 +89,6 @@ function App() {
   return (
     <div className="App">
       
-      {/* Navigation Bar */}
       <nav className="top-nav">
         <button className={activeTab === "live" ? "nav-btn active" : "nav-btn"} onClick={() => setActiveTab("live")}>
           🏏 Live Matches
@@ -148,7 +151,6 @@ function App() {
           <header className="App-header">
             <h1>🛡️ Teams Database</h1>
           </header>
-          
           <main>
             {loadingTeams ? (
               <div className="spinner"></div>
@@ -157,13 +159,12 @@ function App() {
                 {teams.length > 0 ? (
                   teams.map((team, index) => (
                     <div key={index} className="team-card" style={{ padding: '15px', textAlign: 'left' }}>
-                      {/* Note: Adjust 'team.name', 'team.city' below if your Python database uses different column names! */}
                       <h3 style={{ marginTop: '0', color: '#00ff88' }}>{team.name || "Unknown Team"}</h3>
                       <p><strong>City/Country:</strong> {team.city || team.country || "N/A"}</p>
                     </div>
                   ))
                 ) : (
-                  <p style={{ color: 'white' }}>No teams found in the database. (Is your backend /api/teams route set up?)</p>
+                  <p style={{ color: 'white' }}>No teams found in the database.</p>
                 )}
               </div>
             )}
@@ -171,13 +172,32 @@ function App() {
         </div>
       )}
 
-      {/* --- ANALYTICS TAB (Placeholder) --- */}
+      {/* --- ANALYTICS TAB --- */}
       {activeTab === "analytics" && (
         <div style={{ padding: '20px', color: 'white' }}>
            <header className="App-header">
-            <h1>📊 Player & Team Analytics</h1>
+            <h1>📊 Team Analytics</h1>
           </header>
-          <p>This is where we will display the charts and statistics!</p>
+          
+          {/* NEW: The Interactive Chart Container */}
+          <main style={{ maxWidth: '900px', margin: '0 auto', backgroundColor: '#242424', padding: '30px', borderRadius: '15px', boxShadow: '0 4px 6px rgba(0,0,0,0.3)' }}>
+            <h2 style={{ marginTop: '0', marginBottom: '30px', color: '#00ff88' }}>Win/Loss Record (Top Teams)</h2>
+            
+            <div style={{ width: '100%', height: 400 }}>
+              <ResponsiveContainer>
+                <BarChart data={mockAnalyticsData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+                  <XAxis dataKey="name" stroke="#ccc" />
+                  <YAxis stroke="#ccc" />
+                  {/* Tooltip makes a cool pop-up box appear when you hover over the bars! */}
+                  <Tooltip contentStyle={{ backgroundColor: '#121212', borderColor: '#333', color: '#fff' }} />
+                  <Legend wrapperStyle={{ paddingTop: '20px' }}/>
+                  <Bar dataKey="wins" fill="#00ff88" name="Wins" radius={[5, 5, 0, 0]} />
+                  <Bar dataKey="losses" fill="#ff4d4d" name="Losses" radius={[5, 5, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </main>
         </div>
       )}
 

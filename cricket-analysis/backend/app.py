@@ -1,5 +1,6 @@
 import os
 from flask import Flask, jsonify
+import requests
 from flask_cors import CORS
 from models import db, Team
 
@@ -33,10 +34,20 @@ with app.app_context():
     db.create_all()
     seed_database()
 
-@app.route('/api/teams', methods=['GET'])
-def get_teams():
-    teams = Team.query.all()
-    return jsonify([team.to_dict() for team in teams])
+@app.route('/api/live-matches', methods=['GET'])
+def get_live_matches():
+    try:
+        # The CricketData API endpoint for current matches
+        api_url = "https://api.cricapi.com/v1/currentMatches?apikey=1b3b6e52-10a7-4bb1-94ba-db9800b3ba12&offset=0"
+        
+        # Fetch the data from the API
+        response = requests.get(api_url)
+        data = response.json()
+        
+        # Send the live data directly to your React frontend
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     # Bind to Render's dynamic port

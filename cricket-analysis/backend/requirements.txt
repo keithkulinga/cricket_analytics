@@ -8,3 +8,4 @@ pandas
 python-dotenv==1.0.0
 Pillow
 Flask-SQLAlchemy
+requests

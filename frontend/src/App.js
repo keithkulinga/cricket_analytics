@@ -72,7 +72,7 @@ function App() {
       </header>
       
       <main style={{ padding: '20px' }}>
-        {loading && <h2>Fetching live scores from the cloud...</h2>}
+        {loading && <div className="spinner"></div>}
         {error && <h2 style={{ color: 'red' }}>Error: {error}</h2>}
         
         {!loading && !error && (

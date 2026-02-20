@@ -9,8 +9,6 @@ function App() {
   const [error, setError] = useState(null);
   const [showOnlyLive, setShowOnlyLive] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  
-  // NEW: State to store the exact time the data was last fetched
   const [lastUpdated, setLastUpdated] = useState("");
 
   useEffect(() => {
@@ -27,7 +25,6 @@ function App() {
             setMatches([]); 
           }
           setLoading(false);
-          // NEW: Update the timestamp whenever we successfully get new data
           setLastUpdated(new Date().toLocaleTimeString());
         })
         .catch(err => {
@@ -48,12 +45,24 @@ function App() {
     return passesLiveFilter && passesSearchFilter;
   });
 
+  // NEW: Sort matches so that "Live" matches appear at the top!
+  const sortedMatches = [...displayedMatches].sort((a, b) => {
+    const aIsFinished = a.status.toLowerCase().includes("won");
+    const bIsFinished = b.status.toLowerCase().includes("won");
+    
+    // If 'a' is live (not finished) and 'b' is finished, 'a' goes first
+    if (!aIsFinished && bIsFinished) return -1;
+    // If 'a' is finished and 'b' is live, 'b' goes first
+    if (aIsFinished && !bIsFinished) return 1;
+    // Otherwise, leave them in the order they came in
+    return 0;
+  });
+
   return (
     <div className="App">
       <header className="App-header">
         <h1>Live Cricket Dashboard 🏏</h1>
         
-        {/* NEW: Display the Last Updated time */}
         {lastUpdated && <p className="last-updated-text">🟢 Live updates • Last checked: {lastUpdated}</p>}
 
         <div className="controls-container">
@@ -79,8 +88,9 @@ function App() {
         
         {!loading && !error && (
           <div className="team-grid">
-            {displayedMatches.length > 0 ? (
-              displayedMatches.map((match) => (
+            {/* NEW: We are now displaying sortedMatches instead of displayedMatches */}
+            {sortedMatches.length > 0 ? (
+              sortedMatches.map((match) => (
                 <div key={match.id} className="team-card" style={{ padding: '15px', textAlign: 'left' }}>
                   <h3 style={{ marginTop: '0' }}>{match.name}</h3>
                   <p><strong>Status:</strong> {match.status}</p>
